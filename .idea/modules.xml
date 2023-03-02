@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../../Application/test/MoCA_ROI_rec/.idea/MoCA_ROI_rec.iml" filepath="$PROJECT_DIR$/../../Application/test/MoCA_ROI_rec/.idea/MoCA_ROI_rec.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../MoCA_TemplateMatch/.idea/MoCA_TemplateMatch.iml" filepath="$PROJECT_DIR$/../MoCA_TemplateMatch/.idea/MoCA_TemplateMatch.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/dzs_rsk_pred_automl.iml" filepath="$PROJECT_DIR$/.idea/dzs_rsk_pred_automl.iml" />
+    </modules>
+  </component>
+</project>

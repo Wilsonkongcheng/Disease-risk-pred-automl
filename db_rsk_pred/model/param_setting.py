@@ -1,5 +1,8 @@
+import sys
+import os
 
-import argparse
+  # 当前项目路径加入到sys.path头部（必须加入头部，append加入尾部依旧会报错）                                                      # os.getcwd() 当前工作路径 working dir
+import argparse                                                          # 必须使sys.path头部插入 'F:\\PycharmProject\\dzs_rsk_pred_automl'后续才可import db_rsk_pred中的包
 from functools import partial
 
 import optuna
@@ -8,13 +11,10 @@ import xgboost as xgb
 from lightgbm import LGBMClassifier, LGBMRanker, LGBMRegressor
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-
 from db_rsk_pred.reader.db import *
-from db_rsk_pred.preprocess.preprocess import *
-from db_rsk_pred.preprocess.preprocess import PreProcessor
+# from db_rsk_pred.preprocess.preprocess import *
 from db_rsk_pred.util.util import init_logger
 from db_rsk_pred.reader.read_data_from_db import read_db
-
 
 
 
@@ -43,7 +43,7 @@ def optuna_objective(train_data, test_data, features, label, trial):
         'feature_fraction': trial.suggest_uniform('feature_fraction', 0.4, 1.0),
         'bagging_fraction': trial.suggest_uniform('bagging_fraction', 0.4, 1.0),
         'bagging_freq': trial.suggest_int('bagging_freq', 1, 7),
-        'monotone_constraints':[1]*len(features)
+        'monotone_constraints': [1] * len(features)
     }
 
     # Fit the model
@@ -62,12 +62,12 @@ if __name__ == '__main__':
     parser.add_argument("-c", "--cfg", default='cfg.ini')
     parser.add_argument('-s','--source',default='csv')
     parser.add_argument('--save')
-    
+
     args = parser.parse_args()
     cp = args.cfg
     cfg = config_from_ini(
         open(cp, 'rt', encoding='utf-8'), read_from_file=True)
-    
+
     cols = cfg.source.cols
     cols = [c.strip()for c in cols.split(',') if len(c.strip()) > 0]
     tgt = cfg.source.tgt
@@ -77,7 +77,11 @@ if __name__ == '__main__':
         raise ValueError('constraint features must be a subset of the features required to train the model')
     pos_constraints = [c.strip()for c in cols.split(',') if len(c.strip()) > 0]
     monotone_constraints = [1 for _ in pos_constraints]
-    # print(mon)
+    print(monotone_constraints)
+
+    preprocess_dir = cfg.preprocess.path
+    sys.path.append(preprocess_dir)
+    from preprocess import PreProcessor
 
     if args.source =='csv':
         data = pd.read_csv(f'{args.data}')
@@ -85,9 +89,11 @@ if __name__ == '__main__':
         data = read_db(cfg)
 
     cols = [col_mapping[c] for c in cols if c != cfg.source.id]
-   
-    
+
+
     processor = PreProcessor()
+    print(type(processor))
+    print(dir(processor)[-2:])
     data, col_mapping = processor.process(data)
     train_data = data.sample(frac=0.8)
     eval_data = data[~data.index.isin(train_data.index)]
@@ -98,4 +104,4 @@ if __name__ == '__main__':
     best_trial = study.best_trial
     best_model = best_trial.user_attrs['model']
     best_model.save(args.save)
-    # logger.info('training finished ! model has been saved to %s',args.save)
+    logger.info('training finished ! model has been saved to %s',args.save)

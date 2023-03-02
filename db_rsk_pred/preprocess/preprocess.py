@@ -68,10 +68,15 @@ class PreProcessor:
         return df, col_mapping
 
 
+
 if __name__ == '__main__':
-    data = pd.read_csv('./data/train_data.csv')
+    data = pd.read_csv('../../data/train_data.csv')
     print(data.columns)
+    print(data.shape)
     processor = PreProcessor()
     data, colmapping = processor.process(data)
     print(data.shape)
+    print(data.columns)
     print(colmapping)
+
+
