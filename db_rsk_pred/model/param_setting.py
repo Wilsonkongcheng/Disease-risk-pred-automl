@@ -15,7 +15,7 @@ from db_rsk_pred.reader.db import *
 # from db_rsk_pred.preprocess.preprocess import *
 from db_rsk_pred.util.util import init_logger
 from db_rsk_pred.reader.read_data_from_db import read_db
-
+from db_rsk_pred.preprocess.pre_test import PreProcessor
 
 
 def optuna_objective(train_data, test_data, features, label, trial):
@@ -58,8 +58,8 @@ def optuna_objective(train_data, test_data, features, label, trial):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--data", default='train_data.csv')
-    parser.add_argument("-c", "--cfg", default='cfg.ini')
+    parser.add_argument("-d", "--data", default='../../data/train_data.csv')
+    parser.add_argument("-c", "--cfg", default='../../cfg_sample.ini')
     parser.add_argument('-s','--source',default='csv')
     parser.add_argument('--save')
 
@@ -72,36 +72,38 @@ if __name__ == '__main__':
     cols = [c.strip()for c in cols.split(',') if len(c.strip()) > 0]
     tgt = cfg.source.tgt
 
-    pos_constraints = cfg.monotonic_constraint.pos
-    if not all([c for c in pos_constraints if c not in cols]):
-        raise ValueError('constraint features must be a subset of the features required to train the model')
-    pos_constraints = [c.strip()for c in cols.split(',') if len(c.strip()) > 0]
-    monotone_constraints = [1 for _ in pos_constraints]
-    print(monotone_constraints)
+    # pos_constraints = cfg.monotonic_constraint.pos
+    # if not all([c for c in pos_constraints if c not in cols]):
+    #     raise ValueError('constraint features must be a subset of the features required to train the model')
+    # pos_constraints = [c.strip()for c in cols.split(',') if len(c.strip()) > 0]
+    # monotone_constraints = [1 for _ in pos_constraints]
+    # print(monotone_constraints)
 
-    preprocess_dir = cfg.preprocess.path
-    sys.path.append(preprocess_dir)
-    from preprocess import PreProcessor
+    sys.path.append(cfg.preprocess.proc_func_path)
+
+    from Proc import Proc
 
     if args.source =='csv':
         data = pd.read_csv(f'{args.data}')
     else:
         data = read_db(cfg)
 
-    cols = [col_mapping[c] for c in cols if c != cfg.source.id]
+    # cols = [col_mapping[c] for c in cols if c != cfg.source.id]
 
 
-    processor = PreProcessor()
-    print(type(processor))
-    print(dir(processor)[-2:])
+    processor = PreProcessor(Proc())
+    # print(type(processor))
+    # print(dir(processor)[-2:])
     data, col_mapping = processor.process(data)
-    train_data = data.sample(frac=0.8)
-    eval_data = data[~data.index.isin(train_data.index)]
-    objective = partial(optuna_objective, train_data[cols],
-                        eval_data[cols], monotone_constraints, cols, tgt)
-    study = optuna.create_study(direction='maximize')
-    study.optimize(objective, n_trials=100,timeout=2,n_jobs=-1,show_progress_bar =True)
-    best_trial = study.best_trial
-    best_model = best_trial.user_attrs['model']
-    best_model.save(args.save)
-    logger.info('training finished ! model has been saved to %s',args.save)
+    print(data["吸烟"].unique())
+    print(col_mapping)
+    # train_data = data.sample(frac=0.8)
+    # eval_data = data[~data.index.isin(train_data.index)]
+    # objective = partial(optuna_objective, train_data[cols],
+    #                     eval_data[cols], monotone_constraints, cols, tgt)
+    # study = optuna.create_study(direction='maximize')
+    # study.optimize(objective, n_trials=100,timeout=2,n_jobs=-1,show_progress_bar =True)
+    # best_trial = study.best_trial
+    # best_model = best_trial.user_attrs['model']
+    # best_model.save(args.save)
+    # logger.info('training finished ! model has been saved to %s',args.save)

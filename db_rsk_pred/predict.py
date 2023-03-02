@@ -1,14 +1,15 @@
 import argparse
-
+import sys
 import pandas as pd
 import xgboost as xgb
 # from params import paramsP
 from sklearn.metrics import accuracy_score
 from lightgbm import LGBMClassifier
-import eli5
+# import eli5
 from db_rsk_pred.reader.db import *
 from db_rsk_pred.reader.db import DB
-from db_rsk_pred.preprocess.preprocess import *
+# from db_rsk_pred.preprocess.preprocess import *
+from db_rsk_pred.preprocess.pre_test import PreProcessor
 from db_rsk_pred.util.util import init_logger
 import joblib
 from db_rsk_pred.serve.load_model import *
@@ -18,8 +19,8 @@ LOGGER = init_logger()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--data",default='./data/test_data.csv')
-    parser.add_argument("-c","--cfg",default='cfg.ini')
+    parser.add_argument("-d", "--data",default='../data/test_data.csv')
+    parser.add_argument("-c","--cfg",default='../cfg_sample.ini')
     parser.add_argument("-m","--model",default='model.pkl')
     args = parser.parse_args()
     cp = args.cfg
@@ -31,7 +32,11 @@ if __name__ == '__main__':
     # tgt = cfg.source.tgt
 
     data = pd.read_csv(f'{args.data}')
-    processor = PreProcessor()
+
+    sys.path.append(cfg.preprocess.proc_func_path)
+    from Proc import Proc
+
+    processor = PreProcessor(Proc())
 
     
     data,col_mapping = processor.process(data)
