@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 from db_rsk_pred.model import param_setting
 from db_rsk_pred.reader.db import *
 # from db_rsk_pred.preprocess.preprocess import *
-from db_rsk_pred.preprocess.pre_test import PreProcessor
+from db_rsk_pred.preprocess.preprocess import PreProcessor
 from db_rsk_pred.util.util import init_logger
 from db_rsk_pred.reader.read_data_from_db import read_db
 import joblib
@@ -52,10 +52,10 @@ if __name__ == '__main__':
         data = read_db(cfg)
 
    
-    sys.path.append(cfg.preprocess.proc_func_path)
-    from Proc import Proc
+    # sys.path.append(cfg.preprocess.proc_func_path)
+    # from Proc import Proc
 
-    processor = PreProcessor(Proc())
+    processor = PreProcessor(cfg.preprocess.proc_func_path)
     data, col_mapping = processor.process(data)
     cols = [col_mapping[c] for c in cols if c != cfg.source.id]  # remove user_id then col_name mapping
     print(cols)

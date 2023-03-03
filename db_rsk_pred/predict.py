@@ -9,7 +9,7 @@ from lightgbm import LGBMClassifier
 from db_rsk_pred.reader.db import *
 from db_rsk_pred.reader.db import DB
 # from db_rsk_pred.preprocess.preprocess import *
-from db_rsk_pred.preprocess.pre_test import PreProcessor
+from db_rsk_pred.preprocess.preprocess import PreProcessor
 from db_rsk_pred.util.util import init_logger
 import joblib
 from db_rsk_pred.serve.load_model import *
@@ -33,10 +33,8 @@ if __name__ == '__main__':
 
     data = pd.read_csv(f'{args.data}')
 
-    sys.path.append(cfg.preprocess.proc_func_path)
-    from Proc import Proc
 
-    processor = PreProcessor(Proc())
+    processor = PreProcessor(cfg.preprocess.proc_func_path)
 
     
     data,col_mapping = processor.process(data)
