@@ -8,7 +8,7 @@ from db_rsk_pred.util.util import init_logger
 logger = init_logger()
 
 
-def read_db(cfg, train=0.7, limit=1000):
+def read_db(cfg, train=0.7, limit=1000000):
     cfg = config_from_ini(
         open(cp, 'rt', encoding='utf-8'), read_from_file=True)
     db = DB(cfg.db.host, cfg.db.user, cfg.db.password,
