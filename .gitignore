@@ -9,3 +9,6 @@ logs
 *.log
 cfg.ini
 examples
+*.jpg
+*.png
+*.doc

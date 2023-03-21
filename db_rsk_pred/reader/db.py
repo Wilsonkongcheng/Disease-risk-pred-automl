@@ -41,7 +41,7 @@ class DB:
                 pbar.update(1)
         return pd.concat(all_dfs)
 
-    def fetch_data_new(self, limit=3000000):  # 降低3-5%左右的内存使用，时间与fetch_data相近
+    def fetch_data_new(self, limit=1000000):  # 降低3-5%左右的内存使用，时间与fetch_data相近
         sql = f'select {self.source_cols},{self.target} from {self.source} limit {limit} '
         columns = (self.source_cols+','+self.target).replace('\n', '').split(',')
         with self.conn.cursor() as cursor:
@@ -55,7 +55,6 @@ class DB:
                     pbar.update(1)
             return pd.DataFrame(data=all_dfs, columns=columns)
             # return pd.DataFrame(data=result, columns=columns)
-
 
 
 
@@ -78,7 +77,7 @@ if __name__ == '__main__':
     db = DB(cfg.db.host, cfg.db.user, cfg.db.password,
             cfg.source.table, cfg.source.cols, cfg.source.tgt)
     start = time.time()
-    data = db.fetch_data()
+    data = db.fetch_data_new()
     end = time.time()
     print("total time:", end-start)
     print(data.info())

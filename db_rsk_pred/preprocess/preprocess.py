@@ -59,7 +59,7 @@ class PreProcessor:
         for func, nms in self.proc_funcs.items():
             df[nms[1]] = df[nms[0]].apply(func).apply(pd.to_numeric)  # value map then to float
             col_mapping[nms[0]] = nms[1]
-        return df, col_mapping
+        return df, col_mapping   # old+new cols
 
 
 if __name__ == '__main__':

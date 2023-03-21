@@ -28,7 +28,6 @@ class CatClass(object):
 def func1(a=1):
     a = 11111
 
-
 #  成员函数
 functions = inspect.getmembers(CatClass, lambda a: inspect.isfunction(a))
 print(functions)

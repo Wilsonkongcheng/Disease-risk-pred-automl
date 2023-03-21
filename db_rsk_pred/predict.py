@@ -17,39 +17,40 @@ from db_rsk_pred.serve.load_model import *
 LOGGER = init_logger()
 
 
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--data",default='../data/test_data.csv')
-    parser.add_argument("-c","--cfg",default='../cfg_sample.ini')
-    parser.add_argument("-m","--model",default='model.pkl')
+    parser.add_argument("-d", "--data", default='../data/train_data.csv')
+    parser.add_argument("-c", "--cfg", default='../cfg_sample.ini')
+    parser.add_argument("-m", "--model", default='model.json')
     args = parser.parse_args()
     cp = args.cfg
-    cfg = config_from_ini(open(cp,'rt',encoding='utf-8'),read_from_file=True)
-    cols = cfg.source.cols 
+    cfg = config_from_ini(open(cp, 'rt', encoding='utf-8'), read_from_file=True)
+    cols = cfg.source.cols
 
-    cols = [c.strip()for c in cols.split(',') if len(c.strip())>0]
+    cols = [c.strip() for c in cols.split(',') if len(c.strip()) > 0]
     #
     # tgt = cfg.source.tgt
 
     data = pd.read_csv(f'{args.data}')
 
-
     processor = PreProcessor(cfg.preprocess.proc_func_path)
 
-    
-    data,col_mapping = processor.process(data)
-    cols = [col_mapping[c] for c in cols if c!=cfg.source.id]
-    
+    data, col_mapping = processor.process(data)
+    cols = [col_mapping[c] for c in cols if c != cfg.source.id]
+
     model = Model(args.model)
-    
-    preds =  model.model.predict_proba(data[cols])[:,1]
-    # LOGGER.info('test accuracy:%s',accuracy_score(data[tgt],preds))
-    
-    data['Pred'] = preds
-    LOGGER.info('sample of prediction results')
-    print(data.head())
-    data.to_csv('test_result.csv')
-    LOGGER.info('test results saved to local disk')
-    # db =DB(cfg.db.host,cfg.db.user,cfg.db.password,cfg.source.table,cfg.source.cols,cfg.source.tgt)
-    # data = db.write_result(data)
-    # LOGGER.info('test results saved to db_rsk_preds')
+
+    preds_proba, shap_values = model.model.predict(data,feature_importance=True)
+    print(data[cols].info())
+    # # LOGGER.info('test accuracy:%s',accuracy_score(data[tgt],preds))
+    #
+    # data['Pred'] = preds
+    # LOGGER.info('sample of prediction results')
+    # print(data.head())
+    # data.to_csv('test_result.csv')
+    # LOGGER.info('test results saved to local disk')
+    # # db =DB(cfg.db.host,cfg.db.user,cfg.db.password,cfg.source.table,cfg.source.cols,cfg.source.tgt)
+    # # data = db.write_result(data)
+    # # LOGGER.info('test results saved to db_rsk_preds')
