@@ -4,6 +4,7 @@ db_rsk_pred/preprocess/__pycache__
 db_rsk_pred/reader/__pycache__
 db_rsk_pred/serve/__pycache__
 db_rsk_pred/util/__pycache__
+data
 *.csv
 logs
 *.log
