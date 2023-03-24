@@ -12,6 +12,7 @@ import time
 import psutil
 import os
 
+
 class DB:
 
     def __init__(self, host, user, password, source, source_cols, target) -> None:
@@ -26,11 +27,11 @@ class DB:
         )
         self.source = source  # table
         self.source_cols = source_cols  # cols
-        self.target = target # tgt
+        self.target = target  # tgt
 
     def fetch_data(self, limit=3000000):
         # cols = ','.join(c for c in self.source_cols)
-        chunksize = int(limit/100)
+        chunksize = int(limit / 100)
         sql = f'select {self.source_cols},{self.target} from {self.source} limit {limit} '
         all_records = pd.read_sql(sql, self.conn, chunksize=chunksize)
         all_dfs = []
@@ -43,7 +44,7 @@ class DB:
 
     def fetch_data_new(self, limit=1000000):  # 降低3-5%左右的内存使用，时间与fetch_data相近
         sql = f'select {self.source_cols},{self.target} from {self.source} limit {limit} '
-        columns = (self.source_cols+','+self.target).replace('\n', '').split(',')
+        columns = (self.source_cols + ',' + self.target).replace('\n', '').split(',')
         with self.conn.cursor() as cursor:
             cursor.execute(sql)
             result = cursor.fetchall_unbuffered()
@@ -56,18 +57,33 @@ class DB:
             return pd.DataFrame(data=all_dfs, columns=columns)
             # return pd.DataFrame(data=result, columns=columns)
 
-
-
     def write_result(self, df, to_write_cols=['USER_ID', 'Pred']):
-        cursor = self.conn.cursor()
-        sql = f''' replace into dws.db_rsk_preds (USER_ID,SCR)
-                            values (%s,%s)'''
+        # create sql
+        values = ["%s" for i in range(len(to_write_cols))]
+        values_str = str(values)[1:-1].replace("'", '')
+        to_write_cols_str = str(to_write_cols)[1:-1].replace("'", '')
+        sql = f''' REPLACE INTO {self.source}''' \
+              + f''' ({to_write_cols_str})''' + f''' VALUES ({values_str})'''
 
-        to_write = []
-        for row in df[to_write_cols].values.tolist():
-            to_write.append(tuple(row))
-        cursor.executemany(sql, to_write)
-        self.conn.commit()
+        # Create a cursor and begin a transaction
+        cursor = self.conn.cursor()
+        cursor.execute('BEGIN')
+        # Split the data into batches of 5000 rows
+        batch_size = 5000
+        num_batches = df.shape[0] // batch_size + (1 if df.shape[0] % batch_size != 0 else 0)
+        # Use tqdm to add a progress bar to the insertion process
+        for i in tqdm.tqdm(range(num_batches)):
+            start_idx = i * batch_size
+            end_idx = min((i + 1) * batch_size, df.shape[0])
+            batch = df.iloc[start_idx:end_idx]
+            to_write = []
+            for row in batch[to_write_cols].values.tolist():
+                to_write.append(tuple(row))
+            cursor.executemany(sql, to_write)
+
+            # commit the changes
+            self.conn.commit()
+        # close the connection
         self.conn.close()
 
 
@@ -79,7 +95,7 @@ if __name__ == '__main__':
     start = time.time()
     data = db.fetch_data_new()
     end = time.time()
-    print("total time:", end-start)
+    print("total time:", end - start)
     print(data.info())
     print(data.head())
     # print(u'当前进程的内存使用：%.4f GB' % (psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024 / 1024))

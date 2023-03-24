@@ -1,3 +1,5 @@
+__pycache__
+.idea
 db_rsk_pred/__pycache__
 db_rsk_pred/model/__pycache__
 db_rsk_pred/preprocess/__pycache__

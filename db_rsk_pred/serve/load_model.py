@@ -30,7 +30,7 @@ class Model:
         self.feature_names = self.model.booster_.feature_name()
         print(self.feature_names)
 
-    def predict(self, data, feature_importance=False):
+    def predict(self, data):
         if isinstance(data, list) and isinstance(data[0], dict):
             features = list(data[0].keys())
             if not all([True for f in self.feature_names if f in features]):
@@ -45,17 +45,19 @@ class Model:
         else:
             raise TypeError('data type has to be list of dict or pandas dataframe')
         preds = self.model.predict_proba(data)
-        if feature_importance:
-            explainer = shap.TreeExplainer(model, data=data)
-            # explan = explainer.shap_values(data, approximate=True)  # shap value
-            preds_proba_positive = preds[:, 1]
-            expected_value_positive = explainer.expected_value[1]
-            shap_value_positive = shap_values[1] - expected_value_positive
-            shap_value_output = shap_value_positive + preds_proba_positive.reshape(-1, 1)
-            return preds, shap_value_output
-        else:
-            return preds
+        return preds
 
+    def explain(self, data, preds, label_index: int):
+        explainer = shap.TreeExplainer(self.model)
+        shap_values = np.array(explainer.shap_values(data))  # [label,N,feature]
+        # explan = explainer.shap_values(data, approximate=True)  # shap value
+
+        preds_proba = preds[:, label_index]
+        expected_value = explainer.expected_value[label_index]
+        shap_value = shap_values[label_index] - expected_value
+        shap_value_output = shap_value + preds_proba.reshape(-1, 1)
+
+        return shap_value_output
 
 
 def weight_filter(x):
@@ -114,7 +116,7 @@ if __name__ == '__main__':
     for index, row in topk_data.iterrows():
         print(row)
     # calculate pred_prob of 1, shap and rsk_count of topk_data
-    preds_proba, shap_values = model.predict(topk_data, feature_importance=True)
+    preds_proba, shap_values = model.predict(topk_data)
     # preds_proba_1 = preds_proba[:, 1]
     # df_shap = pd.DataFrame(shap_values, columns=[col + '_weight' for col in cols], dtype=np.float16)  # shap
     # rsk_count = count_rsk(data, cfg)
