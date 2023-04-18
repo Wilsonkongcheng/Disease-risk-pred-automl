@@ -3,11 +3,15 @@ import sys
 
 import numpy as np
 import pandas as pd
+
+import xgboost as xgb
 # from params import paramsP
 from sklearn.metrics import accuracy_score
 from lightgbm import LGBMClassifier
 # import eli5
 from db_rsk_pred.database.write_to_db import write_db
+from db_rsk_pred.reader.db import *
+from db_rsk_pred.reader.db import DB
 # from db_rsk_pred.preprocess.preprocess import *
 from db_rsk_pred.preprocess.preprocess import PreProcessor
 from db_rsk_pred.util.util import init_logger
@@ -35,6 +39,7 @@ def count_rsk(df: pd.DataFrame, cfg):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--data", default='../data/full_data.csv')
+    parser.add_argument("-d", "--data", default='../data/process/test_data.csv')
     parser.add_argument("-c", "--cfg", default='../cfg_sample.ini')
     parser.add_argument("-m", "--model", default='model.json')
     args = parser.parse_args()
@@ -44,6 +49,10 @@ if __name__ == '__main__':
 
     cols = [c.strip() for c in cols.split(',') if len(c.strip()) > 0]
 
+    #
+    # tgt = cfg.source.tgt
+    # is_cols = [col for col in cols if col[:2] == "is" or col=="tnb"]
+    # dtype = {i: np.int64 for i in is_cols}
     ori_data = pd.read_csv(f'{args.data}')
     print(ori_data.info())
     processor = PreProcessor(cfg.preprocess.proc_func_path)
@@ -54,6 +63,8 @@ if __name__ == '__main__':
     model = Model(args.model)
 
     # predict and shap
+    # ori_data = ori_data[:1000]
+    # data = data.iloc[:1000]
     preds_proba = model.predict(data)
     shap_value = model.explain(data[cols], preds_proba, 1)
 
@@ -89,3 +100,26 @@ if __name__ == '__main__':
     #  save to DB
     save_path = '../data/full_result.csv'
     write_db(cfg, save_path)
+
+
+
+    # save to DB
+    db = DB(cfg.db.host, cfg.db.user, cfg.db.password, cfg.target.table, cfg.source.cols, cfg.source.tgt)
+    to_write_cols = list(set(result_df.columns.tolist()).difference(set(ori_data.columns.tolist())))
+    print(np.isnan(result_df.iloc[0].is_yjqsjzcas))
+    # must replace nan into None before write to DB, and the first step is convet to object type
+    result_df = result_df.astype(object).where(result_df.notna(), None)  # object类型可以插入None;int,float类型不可以插入None
+    print(result_df.info())
+    # to_write_cols = ori_data.columns.tolist()
+    db.write_result(result_df, to_write_cols=result_df.columns.tolist())
+    LOGGER.info('test results saved to DB')
+
+
+    # # LOGGER.info('test accuracy:%s',accuracy_score(data[tgt],preds))
+
+    # save to csv
+    # data['Pred'] = preds
+    # LOGGER.info('sample of prediction results')
+    # print(data.head())
+    # data.to_csv('test_result.csv')
+    # LOGGER.info('test results saved to local disk')

@@ -47,7 +47,11 @@ class Model:
         preds = self.model.predict_proba(data)
         return preds
 
+<<<<<<< HEAD
     def explain(self, data, preds, label_index: int = 1):
+=======
+    def explain(self, data, preds, label_index: int):
+>>>>>>> 930b01e41fa0f7e45f9e4a08d5b01317e01e6b88
         explainer = shap.TreeExplainer(self.model)
         shap_values = np.array(explainer.shap_values(data))  # [label,N,feature]
         # explan = explainer.shap_values(data, approximate=True)  # shap value
@@ -147,7 +151,13 @@ if __name__ == '__main__':
     # LOGGER.info('result.csv is saved to local disk')
 
     # write to db
+<<<<<<< HEAD
     data = pd.read_csv()
     db = DB(cfg.db.host, cfg.db.user, cfg.db.password, cfg.source.table, cfg.source.cols, cfg.source.tgt)
     data = db.write_result(data)
     LOGGER.info(f'full results saved to {cfg.source.table}')
+=======
+    # db =DB(cfg.db.host,cfg.db.user,cfg.db.password,cfg.source.table,cfg.source.cols,cfg.source.tgt)
+    # data = db.write_result(data)
+    # LOGGER.info('test results saved to db_rsk_preds')
+>>>>>>> 930b01e41fa0f7e45f9e4a08d5b01317e01e6b88

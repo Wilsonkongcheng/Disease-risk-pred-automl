@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup,find_packages
 
 setup(
     name='db_rsk_pred',
@@ -11,3 +11,4 @@ setup(
                       'scipy', 'tqdm', 'numpy', 'regex',
                       'xlrd', 'matplotlib', 'optuna']
 )
+
