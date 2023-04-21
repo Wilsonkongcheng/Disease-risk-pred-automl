@@ -10,14 +10,13 @@ from sklearn.metrics import accuracy_score
 from lightgbm import LGBMClassifier
 # import eli5
 from db_rsk_pred.database.write_to_db import write_db
-from db_rsk_pred.reader.db import *
-from db_rsk_pred.reader.db import DB
+import os
 # from db_rsk_pred.preprocess.preprocess import *
 from db_rsk_pred.preprocess.preprocess import PreProcessor
 from db_rsk_pred.util.util import init_logger
 import joblib
 from db_rsk_pred.serve.load_model import *
-
+from config import config_from_ini
 LOGGER = init_logger()
 
 
@@ -39,7 +38,6 @@ def count_rsk(df: pd.DataFrame, cfg):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--data", default='../data/full_data.csv')
-    parser.add_argument("-d", "--data", default='../data/process/test_data.csv')
     parser.add_argument("-c", "--cfg", default='../cfg_sample.ini')
     parser.add_argument("-m", "--model", default='model.json')
     args = parser.parse_args()
@@ -103,23 +101,4 @@ if __name__ == '__main__':
 
 
 
-    # save to DB
-    db = DB(cfg.db.host, cfg.db.user, cfg.db.password, cfg.target.table, cfg.source.cols, cfg.source.tgt)
-    to_write_cols = list(set(result_df.columns.tolist()).difference(set(ori_data.columns.tolist())))
-    print(np.isnan(result_df.iloc[0].is_yjqsjzcas))
-    # must replace nan into None before write to DB, and the first step is convet to object type
-    result_df = result_df.astype(object).where(result_df.notna(), None)  # object类型可以插入None;int,float类型不可以插入None
-    print(result_df.info())
-    # to_write_cols = ori_data.columns.tolist()
-    db.write_result(result_df, to_write_cols=result_df.columns.tolist())
-    LOGGER.info('test results saved to DB')
 
-
-    # # LOGGER.info('test accuracy:%s',accuracy_score(data[tgt],preds))
-
-    # save to csv
-    # data['Pred'] = preds
-    # LOGGER.info('sample of prediction results')
-    # print(data.head())
-    # data.to_csv('test_result.csv')
-    # LOGGER.info('test results saved to local disk')

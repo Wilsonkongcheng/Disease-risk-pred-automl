@@ -15,11 +15,11 @@ from db_rsk_pred.database.DB import *
 from db_rsk_pred.preprocess.preprocess import PreProcessor
 from db_rsk_pred.util.util import init_logger
 from db_rsk_pred.database.read_data_from_db import read_db
-from db_rsk_pred.reader.db import *
+from db_rsk_pred.database.DB import *
 # from db_rsk_pred.preprocess.preprocess import *
 from db_rsk_pred.preprocess.preprocess import PreProcessor
 from db_rsk_pred.util.util import init_logger
-from db_rsk_pred.reader.read_data_from_db import read_db
+from db_rsk_pred.database.read_data_from_db import read_db
 import joblib
 import os
 

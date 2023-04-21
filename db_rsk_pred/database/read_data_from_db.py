@@ -3,7 +3,7 @@ import os
 import pandas as pd
 from config import config_from_ini
 
-from db_rsk_pred.reader.db import DB
+from db_rsk_pred.database.DB import DB
 from db_rsk_pred.util.util import init_logger
 
 logger = init_logger()

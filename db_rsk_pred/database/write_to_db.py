@@ -1,4 +1,4 @@
-from DB import DB
+from db_rsk_pred.database.DB import DB
 from config import config_from_ini
 from db_rsk_pred.util.util import init_logger
 import pandas as pd
