@@ -18,22 +18,15 @@ from db_rsk_pred.database.read_data_from_db import read_db
 from db_rsk_pred.database.DB import *
 # from db_rsk_pred.preprocess.preprocess import *
 from db_rsk_pred.preprocess.preprocess import PreProcessor
-from db_rsk_pred.util.util import init_logger
 from db_rsk_pred.database.read_data_from_db import read_db
+from db_rsk_pred.util.util import logger
 import joblib
 import os
 
-logger = init_logger()
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--data", default='../data/train_data.csv')
-    parser.add_argument("-c", "--cfg", default='../cfg_sample.ini')
-    parser.add_argument('-s', '--source', default='csv')
-    parser.add_argument('--save', default='./')
 
-    args = parser.parse_args()
-    # print(args.data)
+
+def train(args):
     cp = args.cfg
     cfg = config_from_ini(
         open(cp, 'rt', encoding='utf-8'), read_from_file=True)
@@ -42,11 +35,11 @@ if __name__ == '__main__':
     cols = [c.strip() for c in cols.split(',') if len(c.strip()) > 0]
     tgt = cfg.source.tgt
     processor = PreProcessor(cfg.preprocess.proc_func_path)
-    if args.source == 'csv':
-        data = pd.read_csv(f'{args.data}')
-    else:
-        data = read_db(cfg)
-
+    # if args.source == 'csv':
+    #     data = pd.read_csv(f'{args.train_data}')
+    # else:
+    #     data = read_db(cfg)
+    data = pd.read_csv(f'{args.train_data}')
     data, col_mapping = processor.process(data)
     cols = [col_mapping[c] for c in cols if c != cfg.source.id]  # remove user_id then col_name mapping
     pos_constraints = [c.strip() for c in cfg.monotonic_constraint.pos.split(',') if c != "None" and len(c.strip()) > 0]
@@ -95,3 +88,14 @@ if __name__ == '__main__':
     # best_model = best_trial.user_attrs['model']
     # best_model.save_model(os.path.join(args.save,'model.json'))
     logger.info('training finished ! model has been saved to %s', args.save)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--cfg", default='../cfg_sample.ini')
+    parser.add_argument("-td", "--train_data", default='./data/train_data.csv')
+    parser.add_argument('-s', '--source', default='csv')
+    parser.add_argument('--save', default='./')
+
+    args = parser.parse_args()
+    train(args)

@@ -14,3 +14,6 @@ def init_logger(log_file=OUTPUT_DIR + "xgboost.log"):
     logger.addHandler(handler1)
     logger.addHandler(handler2)
     return logger
+
+
+logger = init_logger()

@@ -17,8 +17,7 @@ from db_rsk_pred.util.util import init_logger
 import joblib
 from db_rsk_pred.serve.load_model import *
 from config import config_from_ini
-LOGGER = init_logger()
-
+from db_rsk_pred.util.util import logger
 
 def weight_filter(x):
     weight_col = x.filter(like="weight")
@@ -35,12 +34,7 @@ def count_rsk(df: pd.DataFrame, cfg):
     return df[rsk].sum(axis=1)
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-d", "--data", default='../data/full_data.csv')
-    parser.add_argument("-c", "--cfg", default='../cfg_sample.ini')
-    parser.add_argument("-m", "--model", default='model.json')
-    args = parser.parse_args()
+def predict(args):
     cp = args.cfg
     cfg = config_from_ini(open(cp, 'rt', encoding='utf-8'), read_from_file=True)
     cols = cfg.source.cols
@@ -51,7 +45,7 @@ if __name__ == '__main__':
     # tgt = cfg.source.tgt
     # is_cols = [col for col in cols if col[:2] == "is" or col=="tnb"]
     # dtype = {i: np.int64 for i in is_cols}
-    ori_data = pd.read_csv(f'{args.data}')
+    ori_data = pd.read_csv(f'{args.test_data}')
     print(ori_data.info())
     processor = PreProcessor(cfg.preprocess.proc_func_path)
 
@@ -86,19 +80,28 @@ if __name__ == '__main__':
     result_df = result_df.apply(weight_filter, axis=1)
 
     # save to csv
-    if not os.path.exists('../data'):
-        os.mkdir('../data')
-    path = '../data/full_result.csv'
-    result_df.to_csv(path)
-    LOGGER.info('sample of prediction results')
-    print(data.head())
-    LOGGER.info(f'{path.split("/")[-1]} saved to local disk')
+    if not os.path.exists('./data'):
+        os.mkdir('./data')
+    path = './data/full_result.csv'
+    result_df.to_csv(path, index_label='idx')
+    # logger.info('sample of prediction results')
+    logger.info(f'{path.split("/")[-1]} saved to local disk')
 
 
     #  save to DB
-    save_path = '../data/full_result.csv'
+    save_path = './data/full_result.csv'
     write_db(cfg, save_path)
+    # logger.info(f'{path.split("/")[-1]}  saved to DB')
 
+
+if __name__ == '__main__':
+    # logger = init_logger()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--cfg", default='../cfg_sample.ini')
+    parser.add_argument("-pd", "--test_data", default='../data/full_data.csv')
+    parser.add_argument("-M", "--model", default='model.json')
+    args = parser.parse_args()
+    predict(args)
 
 
 

@@ -14,10 +14,8 @@ from db_rsk_pred.util.util import init_logger
 import joblib
 import shap
 
-LOGGER = init_logger()
 
 
-# TypeError
 class Model:
 
     def __init__(self, model_path) -> None:
