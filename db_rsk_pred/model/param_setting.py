@@ -11,10 +11,10 @@ import xgboost as xgb
 from lightgbm import LGBMClassifier, LGBMRanker, LGBMRegressor
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-from db_rsk_pred.reader.db import *
+from db_rsk_pred.database.DB import *
 # from db_rsk_pred.preprocess.preprocess import *
 from db_rsk_pred.util.util import init_logger
-from db_rsk_pred.reader.read_data_from_db import read_db
+from db_rsk_pred.database.read_data_from_db import read_db
 from db_rsk_pred.preprocess.preprocess import PreProcessor
 
 

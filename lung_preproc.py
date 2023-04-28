@@ -16,21 +16,10 @@ note：
 class MyProc:
     def __init__(self):
         # 需要更改的字段
-        self.gender = ['gdr_nm', 'gdr_num']
-        self.BMI = ['BMI', 'BMI_level']
+        self.smk_qty = ['smk_qty', 'smk_qty']
 
-    # 字段应用的转换函数
+        # 字段应用的转换函数
 
-    def gender_m(self, x):
-        if x == '男姓':
-            return 0
-        else:
-            return 1
-
-    def BMI_m(self, x):
+    def smk_qty_m(self, x):
         if pd.isna(x):
-            return 0
-        elif x > 25:
-            return 1
-        else:
             return 0

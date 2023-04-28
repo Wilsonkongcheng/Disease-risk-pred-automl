@@ -1,5 +1,7 @@
 __pycache__
 .idea
+build
+db_rsk_pred.egg-info
 db_rsk_pred/__pycache__
 db_rsk_pred/model/__pycache__
 db_rsk_pred/preprocess/__pycache__
@@ -10,8 +12,9 @@ data
 *.csv
 logs
 *.log
-cfg.ini
 examples
 *.jpg
 *.png
 *.docx
+test.py
+

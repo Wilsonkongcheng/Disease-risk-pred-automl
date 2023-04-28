@@ -15,19 +15,22 @@ import os
 
 class DB:
 
-    def __init__(self, host, user, password, source, source_cols, target) -> None:
+    def __init__(self, host, port, user, password, db, source, source_cols, target, write=None) -> None:
         '''
         数据库连接
         '''
         self.conn = pymysql.connect(
             host=host,
+            port=int(port),
             user=user,
             password=password,
+            database=db,
             cursorclass=pymysql.cursors.SSCursor
         )
         self.source = source  # table
         self.source_cols = source_cols  # cols
         self.target = target  # tgt
+        self.write = write
 
     def fetch_data(self, limit=3000000):
         # cols = ','.join(c for c in self.source_cols)
@@ -57,13 +60,14 @@ class DB:
             return pd.DataFrame(data=all_dfs, columns=columns)
             # return pd.DataFrame(data=result, columns=columns)
 
-    def write_result(self, df, to_write_cols=['USER_ID', 'Pred']):
+    def write_result(self, df):
+        # columns str to list
+        to_write_pd_cols = self.write.pd_cols.split(',')
         # create sql
-        values = ["%s" for i in range(len(to_write_cols))]
-        values_str = str(values)[1:-1].replace("'", '')
-        to_write_cols_str = str(to_write_cols)[1:-1].replace("'", '')
-        sql = f''' REPLACE INTO {self.source}''' \
-              + f''' ({to_write_cols_str})''' + f''' VALUES ({values_str})'''
+        values_str = ('%s,'*len(to_write_pd_cols))[:-1]
+        # to_write_sql_cols_str = str(to_write_sql_cols)[1:-1].replace("'", '')
+        sql = f''' REPLACE INTO {self.write.table}''' \
+              + f''' ({self.write.sql_cols})''' + f''' VALUES ({values_str})'''
 
         # Create a cursor and begin a transaction
         cursor = self.conn.cursor()
@@ -77,7 +81,7 @@ class DB:
             end_idx = min((i + 1) * batch_size, df.shape[0])
             batch = df.iloc[start_idx:end_idx]
             to_write = []
-            for row in batch[to_write_cols].values.tolist():
+            for row in batch[to_write_pd_cols].values.tolist():
                 to_write.append(tuple(row))
             cursor.executemany(sql, to_write)
 
@@ -87,16 +91,22 @@ class DB:
         self.conn.close()
 
 
+
 if __name__ == '__main__':
     cfg = config_from_ini(
         open('../../cfg_sample.ini', 'rt', encoding='utf-8'), read_from_file=True)
-    db = DB(cfg.db.host, cfg.db.user, cfg.db.password,
-            cfg.source.table, cfg.source.cols, cfg.source.tgt)
-    start = time.time()
-    data = db.fetch_data_new()
-    end = time.time()
-    print("total time:", end - start)
-    print(data.info())
-    print(data.head())
+    # db = DB(cfg.db.host, cfg.db.port, cfg.db.user, cfg.db.password, cfg.db.db,
+    #         cfg.source.table, cfg.source.cols, cfg.source.tgt)
+    # start = time.time()
+    # data = db.fetch_data_new()
+    # end = time.time()
+    # print("total time:", end - start)
+    # print(data.info())
+    # print(data.head())
     # print(u'当前进程的内存使用：%.4f GB' % (psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024 / 1024))
     # db.fetch_data_new()
+
+    # save to DB
+    db = DB(cfg.db.host, cfg.db.port, cfg.db.user, cfg.db.password, cfg.db.db, cfg.target.table, cfg.source.cols,
+        cfg.source.tgt, cfg.target)
+    db.save_to_db('../../data/full_result.csv')

@@ -1,26 +1,25 @@
-# Disease Risk Pred with Auto-ML
+# 疾病风险预测自动化拟合框架
 
 ---
 
-## Requirement
+## 依赖要求
 - **python>=3.8**
 - pip
 
-## Install
-- Clone Repo
+## 安装
+- 克隆仓库
 ```bash
 git clone -b dev https://codeup.aliyun.com/gupo/gpra/dzs_rsk_pred_automl.git 
 ```
-- Install Packages
+- 安装相关依赖
 
-  Install all required packages from `setup.py`with following simply run:
+简单运行以下脚本即可从`setup.py`安装相关的依赖
 ```bash
 cd dzs_rsk_pred_automl
 pip install .
 ```
 ## Config
-Create a configuration file(`.ini`)which contains necessary information including Database,
-Pre-process,Model params etc.See the example in `cfg_sample.ini`.
+创建一个`.ini`的配置文件，该文件包含了一些必要的配置信息包括：数据库、预处理、模型参数等。详见例子`cfg_sample.ini`。
 ```ini
 [db] # database
 host =  'your host'
@@ -53,9 +52,8 @@ proc_func_path = 'your proc_func.py absolute path'
 [rsk_factor] # columns in risk factor(features) with the value of True or False
 factor = 'some colums,split by ',''
 ```
-## Pre-process
-Create `preprpcess.py` to write some pre-process function,it can create  new columns and apply manually functions to the the old columns to genetate processed data as following,more
-detail see the demo in `lung_preproc.py`.
+## 预处理
+创建`preprpcess.py`文件，在改文件中写入预处理相关函数，该文件可以创建新的字段名称并在旧特征上应用其中的用户自定义函数来生成处理后的数据，如下所示，具体细节请详见本例`lung_preproc.py`
 ```python
 import pandas as pd
 class MyProc:
@@ -69,37 +67,35 @@ class MyProc:
         if pd.isna(x):
             return 0
 ```
-After this,be sure to add this file's absolute path into `[preprocess] proc_func_path` in the confing file`.ini`  .
-
-## Train
-Running following scrips will happen two stage.Firstly, Fetch origin data from remote database configured in `.ini` and then split into train and test dataset to store with csv files.
-Secondly,train and optimized a lightgbm classifier model automatically with above dataset  and then save to local disk.
+然后，将该文件的绝对路径添加到配置文件`.ini`中的`[preprocess] proc_func_path`
+## 训练
+运行以下脚本将会产生两个阶段。第一阶段，根据配置文件中的信息从数据库中获取原始数据并自动划分为训练集和测试集并存储为csv文件；第二阶段，使用上述的训练数据集自动训练并且调优一个lightgbm的clasiffier模型并保存与本地
 ```bash
 python main.py train -c 'your .ini path'
 ```
-The trained model default saved in relative path './model.json'. You can specified manually path as folloing:
+训练后的模型自动保存在相对路径`./model.json`，用户也可以用如下方式自定义存储路径：
 ```bash
 python main.py train -c 'your .ini path' --save 'your dir root'
 ```
-The trained model can also be logged and store into your **mlflow** platform. Firstly configuration in `main.py`as following:
+训练好的模型可以自动被记录和存储在**mlflow**平台中。第一步，先修改`main.py`中的如下部分:
 ```python
 mlflow.set_tracking_uri("your server addr")  
 mlflow.set_experiment("experiment name")
 ```
-And then add `-ml` as following:
+然后增加`-ml`参数:
 ```bash
 python main.py train -c 'your .ini path' -ml
 ```
-Go to your provided server addr, you can see the results of params, metrics, model info etc.
+进入mlflow的地址，你可以看到参数、指标、模型信息等结果
 
-## Prediction
-Use your trained model to predict risk probability and output explanation with shap value from default test data(./data/test_data.csv) as folloing:
+## 预测
+对默认的测试集数据(./data/test_data.csv) 使用训练好的模型进行疾病风险度预测，并且输出可解释性的shap value：
 ```bash
 python main.py pred
 ```
-The result  saved in `./data/full_result.csv`,and it's also write to the database with your manually configuration in `.ini  [target]`
+结果保存于`./data/full_result.csv`，同时会写入到用户在`.ini  [target]`自定义的数据表中
 
-If you want to use your own dataset to prediction,just add `-pd` as following:
+如果你想使用自己的数据集进行预测，只需要在运行脚本中加入`-pd` 参数：
 ```bash
 python main.py pred -pd 'your test_data.csv root'
 ```

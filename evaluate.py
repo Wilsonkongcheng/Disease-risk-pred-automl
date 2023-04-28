@@ -3,23 +3,46 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
+
+df = pd.read_csv('./data/full_data.csv')
+print(df.info())
+# random sample
+df = pd.read_csv('./data/full_result.csv')
+print(df.info())
+print(pd.value_counts(df.is_lung_ca))
+
+### 普筛
+# # sample age>50
+
 # random sample
 df = pd.read_csv('./data/process/test_data.csv')
 print(pd.value_counts(df.is_cfm_diag))
 
 # # sample age>50  (普筛)
+
 # age50 = df[df.age >= 50]
 # print(age50.info())
 # print(pd.value_counts(age50.is_cfm_diag))
 
 
 #
+
+test_pred = df.sort_values(by=('pred_proba_1'), ascending=False)  # sort
+
+# test_pred = pd.read_csv('./data/result/test_data_results.csv')
+for i in [10000, 50000, 100000, 150000, 200000]:
+    count = pd.value_counts(test_pred[:i].is_lung_ca)[1]
+    print(i, ":", count, "%.2f" % (count / 3091 * 100))
+
+# count = pd.value_counts(test_pred[:162000].is_lung_ca)[1]
+
 test_pred = pd.read_csv('./data/result/test_data_results.csv')
 # for i in [10000, 50000, 100000, 150000, 200000]:
 #     count = pd.value_counts(test_pred[:i].is_cfm_diag)[1]
 #     print(i, ":", count, "%.2f" % (count / 1594 * 100))
 
 # count = pd.value_counts(test_pred[:162000].is_cfm_diag)[1]
+
 # print(count)
 
 
@@ -64,6 +87,17 @@ test_pred = pd.read_csv('./data/result/test_data_results.csv')
 # fig.legend()  # 添加全图图注
 # plt.show()
 
+
+
+# print(test_pred["is_last_apky"].value_counts(dropna=False))
+# print(test_pred["is_last_xhdb"].value_counts(dropna=False))
+# sample = test_pred[(np.isnan(test_pred.is_last_apky)) & (np.isnan(test_pred.is_last_xhdb))
+#                    & (test_pred.is_cfm_diag == 1)]
+# print(sample["is_last_apky"].unique())
+# print(sample["is_last_xhdb"].unique())
+# print(sample.info())
+# print(sample.head())
+
 print(test_pred["is_last_apky"].value_counts(dropna=False))
 print(test_pred["is_last_xhdb"].value_counts(dropna=False))
 sample = test_pred[(np.isnan(test_pred.is_last_apky)) & (np.isnan(test_pred.is_last_xhdb))
@@ -72,4 +106,5 @@ print(sample["is_last_apky"].unique())
 print(sample["is_last_xhdb"].unique())
 print(sample.info())
 print(sample.head())
+
 

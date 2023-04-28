@@ -7,17 +7,15 @@ import xgboost as xgb
 from sklearn.metrics import accuracy_score
 from lightgbm import LGBMClassifier
 # import eli5
-from db_rsk_pred.reader.db import *
-from db_rsk_pred.reader.db import DB
+from db_rsk_pred.database.DB import *
+from db_rsk_pred.database.DB import DB
 from db_rsk_pred.preprocess.preprocess import *
 from db_rsk_pred.util.util import init_logger
 import joblib
 import shap
 
-LOGGER = init_logger()
 
 
-# TypeError
 class Model:
 
     def __init__(self, model_path) -> None:
@@ -146,7 +144,4 @@ if __name__ == '__main__':
     # sorted_test_results.to_csv('../../data/result/test_data_results.csv', index=False)
     # LOGGER.info('result.csv is saved to local disk')
 
-    # write to db
-    # db =DB(cfg.db.host,cfg.db.user,cfg.db.password,cfg.source.table,cfg.source.cols,cfg.source.tgt)
-    # data = db.write_result(data)
-    # LOGGER.info('test results saved to db_rsk_preds')
+
