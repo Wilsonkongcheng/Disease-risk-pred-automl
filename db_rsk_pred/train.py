@@ -24,8 +24,6 @@ import joblib
 import os
 
 
-
-
 def train(args):
     cp = args.cfg
     cfg = config_from_ini(
@@ -88,6 +86,11 @@ def train(args):
     # best_model = best_trial.user_attrs['model']
     # best_model.save_model(os.path.join(args.save,'model.json'))
     logger.info('training finished ! model has been saved to %s', args.save)
+
+    if args.use_mlflow:
+        best_value = best_trial.value
+        metrics = {"top10000_hit_num": best_value}
+        return params, metrics, best_model,
 
 
 if __name__ == '__main__':

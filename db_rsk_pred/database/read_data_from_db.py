@@ -36,7 +36,7 @@ def read_db(cfg, train=0.7, limit=1500000):
             cfg.source.table, cfg.source.cols, cfg.source.tgt)
     data = db.fetch_data_new(limit=limit)
     print(os.getcwd())
-    if not os.path.exists('../data'):
+    if not os.path.exists('./data'):
         os.mkdir('./data')
     # save origin data to disk
     data.to_csv('./data/full_data.csv', index=False)  # ignore index
