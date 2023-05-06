@@ -18,12 +18,15 @@ if __name__ == '__main__':
     # train param
     parser.add_argument("-td", "--train_data", default='./data/train_data.csv')
     parser.add_argument('-s', '--source', choices=['csv', 'db'], default='db')
+    parser.add_argument('-p', '--path')
     parser.add_argument('--save', default='./')
     # train_args = parser.parse_args()
 
     # pred param
     parser.add_argument("-pd", "--test_data", default='./data/full_data.csv')
     parser.add_argument("-M", "--model", default='./model.json')
+    parser.add_argument("-e", "--explain", default=True, choices=['True', 'False'])
+    parser.add_argument("-db", "--to_db", default=True, choices=['True', 'False'])
     args = parser.parse_args()
 
     # train or pred
@@ -37,13 +40,18 @@ if __name__ == '__main__':
         # mlflow
         if args.use_mlflow:
             mlflow.set_tracking_uri("http://10.123.234.229:5000")  # server addr
-            mlflow.set_experiment("yuhuan_lung_rsk_pred")  # experiment name
+            mlflow.set_experiment("YuHuan_lung_rsk_pred_hjh")  # experiment name
             with mlflow.start_run():
                 mydata = './data/train_data.csv'  #
                 mlflow.log_artifact(mydata)  # data
                 hyper_params, metrics, mymodel = train(args)
                 mlflow.log_params(hyper_params)  # param
-                mlflow.log_metrics(metrics)  # metric
+                # metrics
+                mlflow.log_metric("top10000_hit_num", metrics["top10000_hit_num"])
+                for i in range(len(metrics['auc'])):
+                    mlflow.log_metrics({"binary_error": metrics["binary_error"][i],
+                                        "binary_logloss": metrics["binary_logloss"][i],
+                                        "auc": metrics["auc"][i]}, step=i)
                 model_info = mlflow.lightgbm.log_model(mymodel,
                                                        artifact_path="model",
                                                        registered_model_name='hjh_yuhuan_lung_pred_lgb')  # model

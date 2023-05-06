@@ -54,30 +54,31 @@ def predict(args):
 
     model = Model(args.model)
 
-    # predict and shap
-    # ori_data = ori_data[:1000]
-    # data = data.iloc[:1000]
+    # predict
     preds_proba = model.predict(data)
-    shap_value = model.explain(data[cols], preds_proba, 1)
-
-    # process results
     preds_proba_1 = preds_proba[:, 1]
-    df_shap = pd.DataFrame(shap_value, columns=[col + '_weight' for col in cols], dtype=np.float16)  # shap
     rsk_count = count_rsk(data, cfg)
     ori_data['pred_proba_1'] = preds_proba_1  # pred_proba of 1
     ori_data['rsk_count'] = rsk_count  # rsk_count
     ori_data = ori_data.reset_index(drop=True)  # reset index
+    # shap and process
+    if eval(args.explain):
+        shap_value = model.explain(data[cols], preds_proba, 1)
+        df_shap = pd.DataFrame(shap_value, columns=[col + '_weight' for col in cols], dtype=np.float16)  # shap
+        # merge all result
+        new_df = [ori_data, df_shap]
+        result_df = pd.concat(new_df, axis=1)
 
-    # merge all result
-    new_df = [ori_data, df_shap]
-    result_df = pd.concat(new_df, axis=1)
+        # fillter shap value: feature value is not null
+        for col in cols:
+            result_df[col + "_weight"] = result_df.apply((lambda x: np.nan if pd.isna(x[col]) else x[col + "_weight"]),
+                                                         axis=1)  # axis=1 apply function to each row
+        # top5 weight
+        result_df = result_df.apply(weight_filter, axis=1)
 
-    # fillter shap value: feature value is not null
-    for col in cols:
-        result_df[col + "_weight"] = result_df.apply((lambda x: np.nan if pd.isna(x[col]) else x[col + "_weight"]),
-                                                     axis=1)  # axis=1 apply function to each row
-    # top5 weight
-    result_df = result_df.apply(weight_filter, axis=1)
+    else:
+        result_df = ori_data
+
 
     # save to csv
     if not os.path.exists('./data'):
@@ -89,9 +90,10 @@ def predict(args):
 
 
     #  save to DB
-    save_path = './data/full_result.csv'
-    write_db(cfg, save_path)
-    # logger.info(f'{path.split("/")[-1]}  saved to DB')
+    if eval(args.to_db):
+        save_path = './data/full_result.csv'
+        write_db(cfg, save_path)
+        # logger.info(f'{path.split("/")[-1]}  saved to DB')
 
 
 if __name__ == '__main__':

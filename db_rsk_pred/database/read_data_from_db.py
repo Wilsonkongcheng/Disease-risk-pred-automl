@@ -7,13 +7,12 @@ from db_rsk_pred.database.DB import DB
 from db_rsk_pred.util.util import logger
 
 
-
-def read_from_csv(cfg,csv_path,train=0.7):
+def read_from_csv(cfg, csv_path, train=0.7):
     cfg = config_from_ini(
         open(cfg, 'rt', encoding='utf-8'), read_from_file=True)
     columns = (cfg.source.cols + ',' + cfg.source.tgt).replace('\n', '').split(',')
     data = pd.read_csv(csv_path, usecols=columns)
-    data = data.sample(frac=1.0)
+    data = data.sample(frac=1.0, random_state=0)
     train_size = int(data.shape[0] * train)
     train_data = data.iloc[0:train_size]
     test_data = data.iloc[train_size:]
@@ -23,10 +22,9 @@ def read_from_csv(cfg,csv_path,train=0.7):
         os.mkdir('./data')
     train_data.to_csv('./data/train_data.csv', index=False)  # ignore index
     test_data.to_csv('./data/test_data.csv', index=False)
-    logger.info('total data size: %s, already save to local disk',
-                data.shape[0])
+    logger.info('total train_data size: %s, already save to local disk',
+                train_data.shape[0])
     return train_size, test_data
-
 
 
 def read_db(cfg, train=0.7, limit=1500000):
@@ -57,12 +55,10 @@ def read_db(cfg, train=0.7, limit=1500000):
     return train_size, test_data
 
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--cfg", default='../../cfg_sample.ini')
     args = parser.parse_args()
     cfg = args.cfg
-    # train_size, _ = read_from_csv(cfg)
-    train_size, _ = read_db(cfg)
-    print(train_size)
+    train_size, _ = read_from_csv(cfg,'')
+    # train_size, _ = read_db(cfg)

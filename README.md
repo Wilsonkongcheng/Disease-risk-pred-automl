@@ -13,7 +13,7 @@ git clone -b dev https://codeup.aliyun.com/gupo/gpra/dzs_rsk_pred_automl.git
 ```
 - Install Packages
 
-  Install all required packages from `setup.py`with following simply run:
+  Install all required packages from `setup.py` with following simply run:
 ```bash
 cd dzs_rsk_pred_automl
 pip install .

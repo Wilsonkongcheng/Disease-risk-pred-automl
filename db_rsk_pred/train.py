@@ -56,7 +56,7 @@ def train(args):
         else:
             monotone_constraints.append(0)
 
-    train_data = data.sample(frac=0.8)
+    train_data = data.sample(frac=0.8, random_state=0)
     eval_data = data[~data.index.isin(train_data.index)]
     # objective = param_setting.optuna_objective_new(train_data,
     #                     eval_data, cols, tgt, monotone_constraints,trial=optuna.trial._trial.Trial)
@@ -64,7 +64,7 @@ def train(args):
                         eval_data, cols, tgt, monotone_constraints)  # 偏函数 固定住trial以外的参数
     study = optuna.create_study(direction='maximize')
     study.optimize(objective, n_trials=100, n_jobs=-1,
-                   show_progress_bar=True)  # n_job=-1 启动所有cpu线程；timeout 学习持续时间（s）到达改时间停止学习
+                   show_progress_bar=True)  # n_job=-1 启动所有cpu线程；timeout 学习持续时间（s）到达该时间停止学习
     best_trial = study.best_trial
     best_params = best_trial.params
     print("best_params: ", best_params)
@@ -78,7 +78,8 @@ def train(args):
 
     params = {**other_params, **best_params}
     best_model = LGBMClassifier(**params)
-    best_model.fit(data[cols], data[tgt])
+    train_log = best_model.fit(train_data[cols], train_data[tgt], eval_set=[(eval_data[cols], eval_data[tgt])],
+                               eval_metric=["error", "auc"])
 
     # save model
     joblib.dump(best_model, os.path.join(args.save, 'model.json'))
@@ -88,8 +89,12 @@ def train(args):
     logger.info('training finished ! model has been saved to %s', args.save)
 
     if args.use_mlflow:
+        binary_error = train_log.evals_result_['valid_0']['binary_error']
+        auc = train_log.evals_result_['valid_0']['auc']
+        binary_logloss = train_log.evals_result_['valid_0']['binary_logloss']
         best_value = best_trial.value
-        metrics = {"top10000_hit_num": best_value}
+        metrics = {"top10000_hit_num": best_value, "binary_error": binary_error, "auc": auc,
+                   "binary_logloss": binary_logloss}
         return params, metrics, best_model,
 
 
