@@ -62,7 +62,7 @@ class DB:
 
     def write_result(self, df):
         # columns str to list
-        to_write_pd_cols = self.write.pd_cols.split(',')
+        to_write_pd_cols = self.write.pd_cols.replace('\n', '').split(',')
         # create sql
         values_str = ('%s,'*len(to_write_pd_cols))[:-1]
         # to_write_sql_cols_str = str(to_write_sql_cols)[1:-1].replace("'", '')

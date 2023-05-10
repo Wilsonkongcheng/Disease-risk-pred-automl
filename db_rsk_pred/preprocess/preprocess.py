@@ -57,7 +57,10 @@ class PreProcessor:
     def process(self, df):
         col_mapping = {c: c for c in df.columns}
         for func, nms in self.proc_funcs.items():
-            df[nms[1]] = df[nms[0]].apply(func).apply(pd.to_numeric)  # value map then to float
+            if nms[1] in ['sport_flag', 'eat_flag']:
+                df[nms[1]] = df[nms[0]].apply(func).astype('category')  # value map then to category
+            else:
+                df[nms[1]] = df[nms[0]].apply(func).apply(pd.to_numeric)  # value map then to float
             col_mapping[nms[0]] = nms[1]
         return df, col_mapping   # old+new cols
 
