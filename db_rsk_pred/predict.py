@@ -80,20 +80,24 @@ def predict(args):
         result_df = ori_data
 
 
-    # save to csv
-    if not os.path.exists('./data'):
-        os.mkdir('./data')
-    path = './data/full_result.csv'
-    result_df.to_csv(path, index_label='idx')
-    # logger.info('sample of prediction results')
-    logger.info(f'{path.split("/")[-1]} saved to local disk')
+    return result_df
 
 
-    #  save to DB
-    if eval(args.to_db):
-        save_path = './data/full_result.csv'
-        write_db(cfg, save_path)
-        # logger.info(f'{path.split("/")[-1]}  saved to DB')
+
+    # # save to csv
+    # if not os.path.exists('./data'):
+    #     os.mkdir('./data')
+    # path = './data/full_result.csv'
+    # result_df.to_csv(path, index_label='idx')
+    # # logger.info('sample of prediction results')
+    # logger.info(f'{path.split("/")[-1]} saved to local disk')
+    #
+    #
+    # #  save to DB
+    # if eval(args.to_db):
+    #     save_path = './data/full_result.csv'
+    #     write_db(cfg, save_path)
+    #     # logger.info(f'{path.split("/")[-1]}  saved to DB')
 
 
 if __name__ == '__main__':
@@ -103,7 +107,7 @@ if __name__ == '__main__':
     parser.add_argument("-pd", "--test_data", default='../data/full_data.csv')
     parser.add_argument("-M", "--model", default='model.json')
     args = parser.parse_args()
-    predict(args)
+    result_df = predict(args)
 
 
 

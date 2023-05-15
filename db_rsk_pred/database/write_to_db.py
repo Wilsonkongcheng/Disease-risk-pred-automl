@@ -11,7 +11,7 @@ def write_db(cfg, path):
             cfg.source.tgt, cfg.target)
     result_df = pd.read_csv(path)
     # must replace nan into None before write to DB, and the first step is conveting  to object type
-    result_df = result_df.astype(str).where(result_df.notna(), None)  # object类型可以插入None;int,float类型不可以插入None
+    result_df = result_df.astype(str).where(result_df.notna(), None)  # string类型可以插入None;int,float类型不可以插入None
     print(result_df.info())
     db.write_result(result_df)
     logger.info(f'{path.split("/")[-1]}  saved to DB')

@@ -45,8 +45,11 @@ class DB:
                 pbar.update(1)
         return pd.concat(all_dfs)
 
-    def fetch_data_new(self, limit=1000000):  # 降低3-5%左右的内存使用，时间与fetch_data相近
-        sql = f'select {self.source_cols},{self.target} from {self.source} limit {limit} '
+    def fetch_data_new(self, sql_str: str = None, limit=1000000):  # 降低3-5%左右的内存使用，时间与fetch_data相近
+        if not sql_str:
+            sql = f'select {self.source_cols},{self.target} from {self.source} limit {limit} '
+        else:
+            sql = sql_str
         columns = (self.source_cols + ',' + self.target).replace('\n', '').split(',')
         with self.conn.cursor() as cursor:
             cursor.execute(sql)
@@ -64,7 +67,7 @@ class DB:
         # columns str to list
         to_write_pd_cols = self.write.pd_cols.replace('\n', '').split(',')
         # create sql
-        values_str = ('%s,'*len(to_write_pd_cols))[:-1]
+        values_str = ('%s,' * len(to_write_pd_cols))[:-1]
         # to_write_sql_cols_str = str(to_write_sql_cols)[1:-1].replace("'", '')
         sql = f''' REPLACE INTO {self.write.table}''' \
               + f''' ({self.write.sql_cols})''' + f''' VALUES ({values_str})'''
@@ -91,7 +94,6 @@ class DB:
         self.conn.close()
 
 
-
 if __name__ == '__main__':
     cfg = config_from_ini(
         open('../../cfg_sample.ini', 'rt', encoding='utf-8'), read_from_file=True)
@@ -108,5 +110,5 @@ if __name__ == '__main__':
 
     # save to DB
     db = DB(cfg.db.host, cfg.db.port, cfg.db.user, cfg.db.password, cfg.db.db, cfg.target.table, cfg.source.cols,
-        cfg.source.tgt, cfg.target)
+            cfg.source.tgt, cfg.target)
     db.save_to_db('../../data/full_result.csv')

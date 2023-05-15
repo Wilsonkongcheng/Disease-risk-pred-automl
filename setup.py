@@ -9,6 +9,7 @@ setup(
                       'python-configuration', 'PyMySQL',
                       'python-dateutil==2.8.2', 'pytz',
                       'scipy', 'tqdm', 'numpy', 'regex',
-                      'xlrd', 'matplotlib', 'optuna', 'shap', 'mlflow']
+                      'xlrd', 'matplotlib', 'optuna', 'shap', 'mlflow',
+                      'schedule']
 )
 
