@@ -5,6 +5,8 @@ from db_rsk_pred.database.read_data_from_db import read_db, read_from_csv
 import argparse
 from db_rsk_pred.util.util import logger
 import mlflow
+import os
+from db_rsk_pred.database.write_to_db import write_db
 
 if __name__ == '__main__':
 
@@ -60,4 +62,18 @@ if __name__ == '__main__':
             train(args)
 
     else:
-        predict(args)
+        result_df = predict(args)
+
+        # save to csv
+        if not os.path.exists('./data'):
+            os.mkdir('./data')
+        path = './data/full_result.csv'
+        result_df.to_csv(path, index_label='idx')
+        logger.info(f'{path.split("/")[-1]} saved to local disk')
+
+        #  save to DB
+        if eval(args.to_db):
+            save_path = './data/full_result.csv'
+            write_db(args.cfg, save_path)
+            # logger.info(f'{path.split("/")[-1]}  saved to DB')
+
