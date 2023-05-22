@@ -4,7 +4,7 @@ setup(
     name='db_rsk_pred',
     version='0.1.0',
     author='gupo',
-    python_requires='>=3.8',
+    python_requires='>=3.8',  # python版本必须>=3.8
     packages=find_packages(),  # ['db_rsk_pred'],  自动找到该路径下的所有package
     install_requires=['pandas', 'scikit-learn', 'lightgbm',
                       'python-configuration', 'PyMySQL',

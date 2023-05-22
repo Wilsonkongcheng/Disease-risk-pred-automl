@@ -8,6 +8,7 @@ import mlflow
 import os
 from db_rsk_pred.database.write_to_db import write_db
 
+
 if __name__ == '__main__':
 
     # global param
