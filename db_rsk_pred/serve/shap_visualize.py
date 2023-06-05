@@ -1,5 +1,5 @@
-from load_model import *
-from load_model import Model
+from db_rsk_pred.serve.load_model import *
+from db_rsk_pred.serve.load_model import Model
 import shap
 import numpy as np
 
@@ -20,16 +20,16 @@ def shap_vis(model, data=None):
     for i in range(5):
         shap.force_plot(explainer.expected_value[1], shap_values[1][i, :], data.iloc[i, :], matplotlib=True,
                         show=True)
-        # plt.title(f"sample_{i}")
-        # plt.savefig(f"sample_check_under70_diag_{i}.jpg", bbox_inches='tight')
-        # plt.close()
+        plt.title(f"sample_{i}")
+        plt.savefig(f"sample_{i}.jpg", bbox_inches='tight')
+        plt.close()
 
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--data", default="../../data/process/test_data.csv")
-    parser.add_argument("-c", "--cfg", default='../../cfg_sample.ini')
+    parser.add_argument("-c", "--cfg", default='../../cfg_lung.ini')
     parser.add_argument("-m", "--model", default="F:\\PycharmProject\\dzs_rsk_pred_automl\\db_rsk_pred\\model.json")
     args = parser.parse_args()
     cp = args.cfg

@@ -7,7 +7,7 @@ from functools import partial
 
 import optuna
 import pandas as pd
-import xgboost as xgb
+# import xgboost as xgb
 from lightgbm import LGBMClassifier, LGBMRanker, LGBMRegressor
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
@@ -99,7 +99,7 @@ def optuna_objective_new(train_data, test_data, features, label, constraints, tr
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--data", default='../../data/train_data.csv')
-    parser.add_argument("-c", "--cfg", default='../../cfg_sample.ini')
+    parser.add_argument("-c", "--cfg", default='../../cfg_lung.ini')
     parser.add_argument('-s', '--source', default='csv')
     parser.add_argument('--save')
 

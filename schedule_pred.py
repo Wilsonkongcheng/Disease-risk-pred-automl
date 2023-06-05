@@ -13,7 +13,7 @@ import time
 def job():
     # global param
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--cfg", default='./cfg_sample.ini')
+    parser.add_argument("-c", "--cfg", default='./cfg_lung.ini')
     # global_args = parser.parse_args()
 
     # pred param

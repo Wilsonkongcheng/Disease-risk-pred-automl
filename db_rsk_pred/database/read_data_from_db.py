@@ -57,7 +57,7 @@ def read_db(cfg, train=0.7, limit=1500000):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--cfg", default='../../cfg_sample.ini')
+    parser.add_argument("-c", "--cfg", default='../../cfg_lung.ini')
     args = parser.parse_args()
     cfg = args.cfg
     train_size, _ = read_from_csv(cfg,'')

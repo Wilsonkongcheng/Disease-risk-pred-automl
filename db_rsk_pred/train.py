@@ -4,10 +4,10 @@ from functools import partial
 
 import optuna
 import pandas as pd
-import xgboost as xgb
+# import xgboost as xgb
 from lightgbm import LGBMClassifier, LGBMRanker, LGBMRegressor
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
+# from sklearn.metrics import accuracy_score
+# from sklearn.model_selection import train_test_split
 # from .model import param_setting
 from db_rsk_pred.model import param_setting
 from db_rsk_pred.database.DB import *
@@ -70,6 +70,8 @@ def train(args):
     print("best_params: ", best_params)
     # params = best_trial['params']
     logger.info('trail ends, now retrain lightgbm with the optimal hyper-parameters')
+
+    # train
     other_params = {'class_weight': 'balanced',  # 针对不平衡数据集自动计算class_weight
                     "random_state": 0,
                     'monotone_constraints': monotone_constraints,
@@ -88,19 +90,25 @@ def train(args):
     # best_model.save_model(os.path.join(args.save,'model.json'))
     logger.info('training finished ! model has been saved to %s', args.save)
 
+    # eval
+    y_pred = best_model.predict_proba(eval_data[cols])[:, 1]
+    hit_num = eval_data.iloc[np.argsort(y_pred)[-10000:]][tgt].sum()
+    eval_count_1 = pd.value_counts(eval_data[tgt])[1]
+    eval_total = eval_data.shape[0]
     if args.use_mlflow:
         binary_error = train_log.evals_result_['valid_0']['binary_error']
         auc = train_log.evals_result_['valid_0']['auc']
         binary_logloss = train_log.evals_result_['valid_0']['binary_logloss']
         best_value = best_trial.value
-        metrics = {"top10000_hit_num": best_value, "binary_error": binary_error, "auc": auc,
-                   "binary_logloss": binary_logloss}
-        return params, metrics, best_model,
+        metrics = {"top10000_hit_num": hit_num, "binary_error": binary_error, "auc": auc,
+                   "binary_logloss": binary_logloss,
+                   "eval_count_1": eval_count_1, "eval_total": eval_total}
+        return params, metrics, best_model
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--cfg", default='../cfg_sample.ini')
+    parser.add_argument("-c", "--cfg", default='../cfg_lung.ini')
     parser.add_argument("-td", "--train_data", default='./data/train_data.csv')
     parser.add_argument('-s', '--source', default='csv')
     parser.add_argument('--save', default='./')

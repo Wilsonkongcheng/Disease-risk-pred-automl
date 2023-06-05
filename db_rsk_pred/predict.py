@@ -4,9 +4,9 @@ import sys
 import numpy as np
 import pandas as pd
 
-import xgboost as xgb
+# import xgboost as xgb
 # from params import paramsP
-from sklearn.metrics import accuracy_score
+# from sklearn.metrics import accuracy_score
 from lightgbm import LGBMClassifier
 # import eli5
 from db_rsk_pred.database.write_to_db import write_db
@@ -17,6 +17,7 @@ from db_rsk_pred.util.util import init_logger
 import joblib
 from db_rsk_pred.serve.load_model import *
 from config import config_from_ini
+import datetime
 from db_rsk_pred.util.util import logger
 
 def weight_filter(x):
@@ -79,6 +80,8 @@ def predict(args):
     else:
         result_df = ori_data
 
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    result_df['etl_time'] = [now]*len(preds_proba_1)
 
     return result_df
 
@@ -103,7 +106,7 @@ def predict(args):
 if __name__ == '__main__':
     # logger = init_logger()
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--cfg", default='../cfg_sample.ini')
+    parser.add_argument("-c", "--cfg", default='../cfg_lung.ini')
     parser.add_argument("-pd", "--test_data", default='../data/full_data.csv')
     parser.add_argument("-M", "--model", default='model.json')
     args = parser.parse_args()

@@ -9,7 +9,6 @@ import tqdm
 from sqlalchemy import create_engine
 from config import config_from_ini
 import time
-import psutil
 import os
 
 

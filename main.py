@@ -14,7 +14,7 @@ if __name__ == '__main__':
     # global param
     parser = argparse.ArgumentParser()
     parser.add_argument("-ml", "--use_mlflow", action='store_true')  # -ml == -ml true   if not use -ml  use_mlfow=False
-    parser.add_argument("-c", "--cfg", default='./cfg_sample.ini')
+    parser.add_argument("-c", "--cfg", default='./cfg_lung.ini')
     parser.add_argument("mode", type=str, choices=['train', 'pred'])
     # global_args = parser.parse_args()
 
