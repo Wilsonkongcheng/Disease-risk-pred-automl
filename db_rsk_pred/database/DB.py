@@ -44,7 +44,7 @@ class DB:
                 pbar.update(1)
         return pd.concat(all_dfs)
 
-    def fetch_data_new(self, sql_str: str = None, limit=1000000):  # 降低3-5%左右的内存使用，时间与fetch_data相近
+    def fetch_data_new(self, sql_str: str = None, limit=3000000):  # 降低3-5%左右的内存使用，时间与fetch_data相近
         if not sql_str:
             sql = f'select {self.source_cols},{self.target} from {self.source} limit {limit} '
         else:
@@ -95,7 +95,7 @@ class DB:
 
 if __name__ == '__main__':
     cfg = config_from_ini(
-        open('../../cfg_sample.ini', 'rt', encoding='utf-8'), read_from_file=True)
+        open('../../cfg_lung.ini', 'rt', encoding='utf-8'), read_from_file=True)
     # db = DB(cfg.db.host, cfg.db.port, cfg.db.user, cfg.db.password, cfg.db.db,
     #         cfg.source.table, cfg.source.cols, cfg.source.tgt)
     # start = time.time()

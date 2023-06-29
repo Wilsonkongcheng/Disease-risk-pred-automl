@@ -20,6 +20,7 @@ from config import config_from_ini
 import datetime
 from db_rsk_pred.util.util import logger
 
+
 def weight_filter(x):
     weight_col = x.filter(like="weight")
     top5_weight = weight_col.sort_values(ascending=False)[:5]  # 降序  top5
@@ -35,22 +36,18 @@ def count_rsk(df: pd.DataFrame, cfg):
     return df[rsk].sum(axis=1)
 
 
-def predict(args):
+def predict(args, ori_data: pd.DataFrame = None):
     cp = args.cfg
     cfg = config_from_ini(open(cp, 'rt', encoding='utf-8'), read_from_file=True)
     cols = cfg.source.cols
-
     cols = [c.strip() for c in cols.split(',') if len(c.strip()) > 0]
-
-    #
-    # tgt = cfg.source.tgt
-    # is_cols = [col for col in cols if col[:2] == "is" or col=="tnb"]
-    # dtype = {i: np.int64 for i in is_cols}
-    ori_data = pd.read_csv(f'{args.test_data}')
-    print(ori_data.info())
+    if ori_data is None:
+        ori_data = pd.read_csv(f'{args.test_data}')
+        print(ori_data.info())
     processor = PreProcessor(cfg.preprocess.proc_func_path)
 
-    data, col_mapping = processor.process(ori_data)
+    data, col_mapping = processor.process(ori_data, cfg.source.id)
+    print(data.info())
     cols = [col_mapping[c] for c in cols if c != cfg.source.id]  # drop user_id
 
     model = Model(args.model)
@@ -81,11 +78,9 @@ def predict(args):
         result_df = ori_data
 
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    result_df['etl_time'] = [now]*len(preds_proba_1)
+    result_df['etl_time'] = [now] * len(preds_proba_1)
 
     return result_df
-
-
 
     # # save to csv
     # if not os.path.exists('./data'):
@@ -111,6 +106,3 @@ if __name__ == '__main__':
     parser.add_argument("-M", "--model", default='model.json')
     args = parser.parse_args()
     result_df = predict(args)
-
-
-

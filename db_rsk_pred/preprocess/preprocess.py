@@ -14,6 +14,7 @@ def import_module_from_file(module_file_path):
     sys.modules["Proc"] = module  # 将模块加入到当前解释器中以便后续以from Proc import * 导入
     return module
 
+
 # 根据用户自定义的Proc.py导入Proc Class
 def fetch_class_from_module(module):
     # print(inspect.getmembers(module, inspect.isclass))
@@ -44,25 +45,27 @@ def create_map_dict(proc_obj):
     return proc_lib
 
 
-
-
 class PreProcessor:
 
-    def __init__(self, module_file_path:str) -> None:
+    def __init__(self, module_file_path: str) -> None:
         module = import_module_from_file(module_file_path)
         cls_name, cls = fetch_class_from_module(module)
         user_proc = cls()
         self.proc_funcs = create_map_dict(user_proc)
 
-    def process(self, df):
+    def process(self, df, source_id):
         col_mapping = {c: c for c in df.columns}
         for func, nms in self.proc_funcs.items():
             if nms[1] in ['sport_flag', 'eat_flag']:
                 df[nms[1]] = df[nms[0]].apply(func).astype('category')  # value map then to category
             else:
-                df[nms[1]] = df[nms[0]].apply(func).apply(pd.to_numeric)  # value map then to float
+                df[nms[1]] = df[nms[0]].apply(func).apply(pd.to_numeric)  # value map then to float/int
             col_mapping[nms[0]] = nms[1]
-        return df, col_mapping   # old+new cols
+            # df.loc[:, (df.dtypes == 'object') & (df.columns != source_id)]
+            object_df = df.select_dtypes(include=['object'])
+            non_id_df = object_df.drop(source_id, axis=1)
+            df[non_id_df.columns] = non_id_df.apply(pd.to_numeric, errors='coerce')
+        return df, col_mapping  # old+new cols
 
 
 if __name__ == '__main__':

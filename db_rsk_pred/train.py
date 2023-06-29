@@ -38,7 +38,7 @@ def train(args):
     # else:
     #     data = read_db(cfg)
     data = pd.read_csv(f'{args.train_data}')
-    data, col_mapping = processor.process(data)
+    data, col_mapping = processor.process(data,cfg.source.id)
     cols = [col_mapping[c] for c in cols if c != cfg.source.id]  # remove user_id then col_name mapping
     pos_constraints = [c.strip() for c in cfg.monotonic_constraint.pos.split(',') if c != "None" and len(c.strip()) > 0]
     neg_constraints = [c.strip() for c in cfg.monotonic_constraint.neg.split(',') if c != "None" and len(c.strip()) > 0]
@@ -93,8 +93,16 @@ def train(args):
     # eval
     y_pred = best_model.predict_proba(eval_data[cols])[:, 1]
     hit_num = eval_data.iloc[np.argsort(y_pred)[-10000:]][tgt].sum()
-    eval_count_1 = pd.value_counts(eval_data[tgt])[1]
-    eval_total = eval_data.shape[0]
+    try:
+        eval_count_1 = pd.value_counts(eval_data[tgt])[1]
+    except KeyError:
+        eval_count_1 = 0
+    finally:
+        eval_total = eval_data.shape[0]
+        hit_rate = hit_num / (eval_count_1 + 0.00000001)
+        print(f"eval_count_1 num: {eval_count_1}/{eval_total}\n"
+              f"hit num: {hit_num}/{eval_count_1}\n"
+              f"hit rate: {hit_rate * 100:.2f}%\n")
     if args.use_mlflow:
         binary_error = train_log.evals_result_['valid_0']['binary_error']
         auc = train_log.evals_result_['valid_0']['auc']
