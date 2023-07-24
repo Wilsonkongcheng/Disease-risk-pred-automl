@@ -31,7 +31,7 @@ use_unicode = True
 charset = utf8mb4
 [source]  # origin data readed from table 
 table = 'your reading table'
-cols  = 'features and label,split by ',''
+cols  = "features,split by ','"
 id = 'unique identifier such as id_no'
 tgt = 'label'
 
@@ -45,12 +45,16 @@ sql_cols = 'writing colunmes in table relatived with above pd_cols,'split with '
 pos= 'positive constraint features in tree-based model,split by',''
 neg= 'negtive constraint features in tree-based model,split by',''
 
-#  user's proc_func.py absolute path    see example in db_rsk_pred/preprocess/Proc_demo.py
+#  user's proc_func.py Relative Path    see example in db_rsk_pred/preprocess/Proc_demo.py
 [preprocess]  
-proc_func_path = 'your proc_func.py absolute path'
+proc_func_path = 'your proc_func.py Relative Path'
 
 [rsk_factor] # columns in risk factor(features) with the value of True or False
-factor = 'some colums,split by ',''
+factor = "some columns,split by ','"
+
+[result] # when predict, whether save result to csv or not
+save=True|False
+
 ```
 ## 预处理
 创建`preprpcess.py`文件，在改文件中写入预处理相关函数，该文件可以创建新的字段名称并在旧特征上应用其中的用户自定义函数来生成处理后的数据，如下所示，具体细节请详见本例`lung_preproc.py`
@@ -89,12 +93,24 @@ python main.py train -c 'your .ini path' -ml
 进入mlflow的地址，你可以看到参数、指标、模型信息等结果
 
 ## 预测
-对默认的测试集数据(./data/test_data.csv) 使用训练好的模型进行疾病风险度预测，并且输出可解释性的shap value：
+对默认的测试集数据(./data/test_data.csv) 使用训练好的模型进行疾病风险度预测，并且输出可解释性的shap value,同时将结果保存本地（默认`./data/pred_result.csv`
+同时会写入到用户在`.ini  [target]`自定义的数据表中：
 ```bash
 python main.py pred
 ```
-结果保存于`./data/full_result.csv`，同时会写入到用户在`.ini  [target]`自定义的数据表中
-
+- 若想修改结果存储文件名，使用 `-sp`参数：
+```bash
+python main.py pred -sp ./data/'your_file_name.csv'
+```
+- 若不想存储csv结果文件到本地，修改`xxx.ini配置文件中[result] save=False`即可。
+- 若结果不存入远程数据库，使用 `-db`参数：
+```bash
+python main.py pred -db Fasle
+```
+- 若预测结果不计算shap value值，使用`-e`参数：
+```bash
+python main.py pred -e Fasle
+```
 如果你想使用自己的数据集进行预测，只需要在运行脚本中加入`-pd` 参数：
 ```bash
 python main.py pred -pd 'your test_data.csv root'

@@ -4,10 +4,10 @@ from functools import partial
 
 import optuna
 import pandas as pd
-import xgboost as xgb
+# import xgboost as xgb
 from lightgbm import LGBMClassifier, LGBMRanker, LGBMRegressor
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
+# from sklearn.metrics import accuracy_score
+# from sklearn.model_selection import train_test_split
 # from .model import param_setting
 from db_rsk_pred.model import param_setting
 from db_rsk_pred.database.DB import *
@@ -38,7 +38,7 @@ def train(args):
     # else:
     #     data = read_db(cfg)
     data = pd.read_csv(f'{args.train_data}')
-    data, col_mapping = processor.process(data)
+    data, col_mapping = processor.process(data, cfg.source.id)
     cols = [col_mapping[c] for c in cols if c != cfg.source.id]  # remove user_id then col_name mapping
     pos_constraints = [c.strip() for c in cfg.monotonic_constraint.pos.split(',') if c != "None" and len(c.strip()) > 0]
     neg_constraints = [c.strip() for c in cfg.monotonic_constraint.neg.split(',') if c != "None" and len(c.strip()) > 0]
@@ -56,7 +56,7 @@ def train(args):
         else:
             monotone_constraints.append(0)
 
-    train_data = data.sample(frac=0.8)
+    train_data = data.sample(frac=0.8, random_state=0)
     eval_data = data[~data.index.isin(train_data.index)]
     # objective = param_setting.optuna_objective_new(train_data,
     #                     eval_data, cols, tgt, monotone_constraints,trial=optuna.trial._trial.Trial)
@@ -64,12 +64,14 @@ def train(args):
                         eval_data, cols, tgt, monotone_constraints)  # 偏函数 固定住trial以外的参数
     study = optuna.create_study(direction='maximize')
     study.optimize(objective, n_trials=100, n_jobs=-1,
-                   show_progress_bar=True)  # n_job=-1 启动所有cpu线程；timeout 学习持续时间（s）到达改时间停止学习
+                   show_progress_bar=True)  # n_job=-1 启动所有cpu线程；timeout 学习持续时间（s）到达该时间停止学习
     best_trial = study.best_trial
     best_params = best_trial.params
     print("best_params: ", best_params)
     # params = best_trial['params']
     logger.info('trail ends, now retrain lightgbm with the optimal hyper-parameters')
+
+    # train
     other_params = {'class_weight': 'balanced',  # 针对不平衡数据集自动计算class_weight
                     "random_state": 0,
                     'monotone_constraints': monotone_constraints,
@@ -78,7 +80,8 @@ def train(args):
 
     params = {**other_params, **best_params}
     best_model = LGBMClassifier(**params)
-    best_model.fit(data[cols], data[tgt])
+    train_log = best_model.fit(train_data[cols], train_data[tgt], eval_set=[(eval_data[cols], eval_data[tgt])],
+                               eval_metric=["error", "auc"])
 
     # save model
     joblib.dump(best_model, os.path.join(args.save, 'model.json'))
@@ -87,15 +90,33 @@ def train(args):
     # best_model.save_model(os.path.join(args.save,'model.json'))
     logger.info('training finished ! model has been saved to %s', args.save)
 
+    # eval
+    y_pred = best_model.predict_proba(eval_data[cols])[:, 1]
+    hit_num = eval_data.iloc[np.argsort(y_pred)[-10000:]][tgt].sum()
+    try:
+        eval_count_1 = pd.value_counts(eval_data[tgt])[1]
+    except KeyError:
+        eval_count_1 = 0
+    finally:
+        eval_total = eval_data.shape[0]
+        hit_rate = hit_num / (eval_count_1 + 0.00000001)
+        print(f"eval_count_1 num: {eval_count_1}/{eval_total}\n"
+              f"hit num: {hit_num}/{eval_count_1}\n"
+              f"hit rate: {hit_rate * 100:.2f}%\n")
     if args.use_mlflow:
+        binary_error = train_log.evals_result_['valid_0']['binary_error']
+        auc = train_log.evals_result_['valid_0']['auc']
+        binary_logloss = train_log.evals_result_['valid_0']['binary_logloss']
         best_value = best_trial.value
-        metrics = {"top10000_hit_num": best_value}
-        return params, metrics, best_model,
+        metrics = {"top10000_hit_num": hit_num, "binary_error": binary_error, "auc": auc,
+                   "binary_logloss": binary_logloss,
+                   "eval_count_1": eval_count_1, "eval_total": eval_total}
+        return params, metrics, best_model
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--cfg", default='../cfg_sample.ini')
+    parser.add_argument("-c", "--cfg", default='../cfg_lung.ini')
     parser.add_argument("-td", "--train_data", default='./data/train_data.csv')
     parser.add_argument('-s', '--source', default='csv')
     parser.add_argument('--save', default='./')

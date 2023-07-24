@@ -1,8 +1,8 @@
 import argparse
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import xgboost as xgb
+# import xgboost as xgb
 # from params import paramsP
 from sklearn.metrics import accuracy_score
 from lightgbm import LGBMClassifier
@@ -76,7 +76,7 @@ def count_rsk(df: pd.DataFrame, cfg):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--data", default="../../data/process/test_data.csv")
-    parser.add_argument("-c", "--cfg", default='../../cfg_sample.ini')
+    parser.add_argument("-c", "--cfg", default='../../cfg_lung.ini')
     parser.add_argument("-m", "--model", default="F:\\PycharmProject\\dzs_rsk_pred_automl\\db_rsk_pred\\model.json")
     args = parser.parse_args()
     cp = args.cfg
