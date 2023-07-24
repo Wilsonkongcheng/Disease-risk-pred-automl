@@ -14,7 +14,7 @@ import os
 
 class DB:
 
-    def __init__(self, host, port, user, password, db, source, source_cols, target, write=None) -> None:
+    def __init__(self, host, port, user, password, db, source, id, source_cols, target, write=None) -> None:
         '''
         数据库连接
         '''
@@ -27,6 +27,7 @@ class DB:
             cursorclass=pymysql.cursors.SSCursor
         )
         self.source = source  # table
+        self.id = id
         self.source_cols = source_cols  # cols
         self.target = target  # tgt
         self.write = write
@@ -46,10 +47,11 @@ class DB:
 
     def fetch_data_new(self, sql_str: str = None, limit=3000000):  # 降低3-5%左右的内存使用，时间与fetch_data相近
         if not sql_str:
-            sql = f'select {self.source_cols},{self.target} from {self.source} limit {limit} '
+            sql = f'select {self.id},{self.source_cols},{self.target} from {self.source} limit {limit} '
+            print(sql)
         else:
             sql = sql_str
-        columns = (self.source_cols + ',' + self.target).replace('\n', '').split(',')
+        columns = (self.id + ',' + self.source_cols + ',' + self.target).replace('\n', '').split(',')
         with self.conn.cursor() as cursor:
             cursor.execute(sql)
             result = cursor.fetchall_unbuffered()
@@ -95,7 +97,7 @@ class DB:
 
 if __name__ == '__main__':
     cfg = config_from_ini(
-        open('../../cfg_lung.ini', 'rt', encoding='utf-8'), read_from_file=True)
+        open('../../cfg_sample.ini', 'rt', encoding='utf-8'), read_from_file=True)
     # db = DB(cfg.db.host, cfg.db.port, cfg.db.user, cfg.db.password, cfg.db.db,
     #         cfg.source.table, cfg.source.cols, cfg.source.tgt)
     # start = time.time()
@@ -108,6 +110,7 @@ if __name__ == '__main__':
     # db.fetch_data_new()
 
     # save to DB
-    db = DB(cfg.db.host, cfg.db.port, cfg.db.user, cfg.db.password, cfg.db.db, cfg.target.table, cfg.source.cols,
+    db = DB(cfg.db.host, cfg.db.port, cfg.db.user, cfg.db.password, cfg.db.db, cfg.source.table, cfg.source.id, cfg.source.cols,
             cfg.source.tgt, cfg.target)
-    db.save_to_db('../../data/full_result.csv')
+    data = db.fetch_data_new()
+    print(data.info())

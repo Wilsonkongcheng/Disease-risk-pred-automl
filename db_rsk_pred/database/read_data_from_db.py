@@ -10,7 +10,7 @@ from db_rsk_pred.util.util import logger
 def read_from_csv(cfg, csv_path, train=0.7):
     cfg = config_from_ini(
         open(cfg, 'rt', encoding='utf-8'), read_from_file=True)
-    columns = (cfg.source.cols + ',' + cfg.source.tgt).replace('\n', '').split(',')
+    columns = (cfg.source.id + ',' + cfg.source.cols + ',' + cfg.source.tgt).replace('\n', '').split(',')
     data = pd.read_csv(csv_path, usecols=columns)
     data = data.sample(frac=1.0, random_state=0)
     train_size = int(data.shape[0] * train)
@@ -31,7 +31,7 @@ def read_db(cfg, train=0.7, limit=1500000):
     cfg = config_from_ini(
         open(cfg, 'rt', encoding='utf-8'), read_from_file=True)
     db = DB(cfg.db.host, cfg.db.port, cfg.db.user, cfg.db.password, cfg.db.db,
-            cfg.source.table, cfg.source.cols, cfg.source.tgt)
+            cfg.source.table, cfg.source.id, cfg.source.cols, cfg.source.tgt)
     data = db.fetch_data_new(limit=limit)
     print(os.getcwd())
     if not os.path.exists('./data'):

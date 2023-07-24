@@ -73,6 +73,7 @@ if __name__ == '__main__':
 
     else:
         result_df = predict(args, ori_data=None)
+        print(result_df.info())
         if eval(cfg.result.save):
             # save to csv
             if not os.path.exists('./data'):

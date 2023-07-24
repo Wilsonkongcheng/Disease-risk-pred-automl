@@ -32,7 +32,7 @@ use_unicode = True
 charset = utf8mb4
 [source]  # origin data readed from table 
 table = 'your reading table'
-cols  = 'features and label,split by ',''
+cols  = 'features,split by ',''
 id = 'unique identifier such as id_no'
 tgt = 'label'
 
@@ -46,12 +46,15 @@ sql_cols = 'writing colunmes in table relatived with above pd_cols,'split with '
 pos= 'positive constraint features in tree-based model,split by',''
 neg= 'negtive constraint features in tree-based model,split by',''
 
-#  user's proc_func.py absolute path    see example in db_rsk_pred/preprocess/Proc_demo.py
+#  user's proc_func.py Relative Path    see example in db_rsk_pred/preprocess/Proc_demo.py
 [preprocess]  
-proc_func_path = 'your proc_func.py absolute path'
+proc_func_path = 'your proc_func.py user's proc_func.py Relative Path'
 
 [rsk_factor] # columns in risk factor(features) with the value of True or False
-factor = 'some colums,split by ',''
+factor = "some columns,split by ','"
+
+[result] # when predict, whether save result to csv or not
+save=True|False
 ```
 ## Pre-process
 Create `preprpcess.py` to write some pre-process function,it can create  new columns and apply manually functions to the the old columns to genetate processed data as following,more
@@ -93,12 +96,24 @@ python main.py train -c 'your .ini path' -ml
 Go to your provided server addr, you can see the results of params, metrics, model info etc.
 
 ## Prediction
-Use your trained model to predict risk probability and output explanation with shap value from default test data(./data/test_data.csv) as folloing:
+Use your trained model to predict risk probability and output explanation with shap value from default test data(./data/test_data.csv).
+The result will save to local disk(default in `./data/pred_result.csv`) and write to the table  manually definded in `.ini  [target]` in database(e.x mysql):
 ```bash
 python main.py pred
 ```
-The result  saved in `./data/full_result.csv`,and it's also write to the database with your manually configuration in `.ini  [target]`
-
+- If rename the csv file, use `-sp` param:
+```bash
+python main.py pred -sp ./data/'your_file_name.csv'
+```
+- If not save the result to local disk, modify  `[result] save=False` in xxx.ini config file
+- If not write the result to database, use `-db` param:
+```bash
+python main.py pred -db Fasle
+```
+- If not calculate shap value in result, use `-e` param:
+```bash
+python main.py pred -e Fasle
+```
 If you want to use your own dataset to prediction,just add `-pd` as following:
 ```bash
 python main.py pred -pd 'your test_data.csv root'

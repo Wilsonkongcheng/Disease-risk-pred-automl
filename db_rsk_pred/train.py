@@ -38,7 +38,7 @@ def train(args):
     # else:
     #     data = read_db(cfg)
     data = pd.read_csv(f'{args.train_data}')
-    data, col_mapping = processor.process(data,cfg.source.id)
+    data, col_mapping = processor.process(data, cfg.source.id)
     cols = [col_mapping[c] for c in cols if c != cfg.source.id]  # remove user_id then col_name mapping
     pos_constraints = [c.strip() for c in cfg.monotonic_constraint.pos.split(',') if c != "None" and len(c.strip()) > 0]
     neg_constraints = [c.strip() for c in cfg.monotonic_constraint.neg.split(',') if c != "None" and len(c.strip()) > 0]
